@@ -10,7 +10,8 @@ type Pos struct {
 }
 
 type Message struct {
-	T      int                    `json:"t" bson:"t"`
+	UUID   int64                  `json:"uuid" bson:"uuid"`
+	T      int64                  `json:"t" bson:"t"`
 	ST     int                    `json:"st" bson:"st"`
 	Pos    Pos                    `json:"pos" bson:"pos"`
 	Params map[string]interface{} `json:"p" bson:"p"`

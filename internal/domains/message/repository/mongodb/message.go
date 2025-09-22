@@ -2,20 +2,20 @@ package mongodb
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"MessageService/internal/domains/message/model"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MessageRepository interface {
 	Insert(ctx context.Context, msg *model.Message) error
-	GetByID(ctx context.Context, id primitive.ObjectID) (*model.Message, error)
-	GetByTimeRange(ctx context.Context, from, to time.Time) ([]*model.Message, error)
+	GetByID(ctx context.Context, id int64) (*model.Message, error)
+	GetByTimeRange(ctx context.Context, id int64, from, to time.Time) ([]*model.Message, error)
 }
 
 type messageRepository struct {
@@ -35,21 +35,22 @@ func (r *messageRepository) Insert(ctx context.Context, msg *model.Message) erro
 }
 
 // GetByID по ObjectID
-func (r *messageRepository) GetByID(ctx context.Context, id primitive.ObjectID) (*model.Message, error) {
+func (r *messageRepository) GetByID(ctx context.Context, id int64) (*model.Message, error) {
 	var msg model.Message
-	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&msg)
+	err := r.collection.FindOne(ctx, bson.M{"uuid": id}).Decode(&msg)
+	log.Println(msg)
 	if err != nil {
 		return nil, err
 	}
 	return &msg, nil
 }
 
-// GetByTimeRange – фильтрация по временному диапазону
-func (r *messageRepository) GetByTimeRange(ctx context.Context, from, to time.Time) ([]*model.Message, error) {
+func (r *messageRepository) GetByTimeRange(ctx context.Context, id int64, from, to time.Time) ([]*model.Message, error) {
 	filter := bson.M{
-		"params.time": bson.M{
-			"$gte": from,
-			"$lte": to,
+		"uuid": id,
+		"t": bson.M{
+			"$gte": from.Unix(),
+			"$lte": to.Unix(),
 		},
 	}
 
@@ -67,5 +68,10 @@ func (r *messageRepository) GetByTimeRange(ctx context.Context, from, to time.Ti
 		}
 		messages = append(messages, &msg)
 	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
 	return messages, nil
 }

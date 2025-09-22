@@ -1,7 +1,9 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"MessageService/internal/domains/message/usecase"
@@ -24,8 +26,12 @@ func (h *MessageHandler) RegisterRoutes(router *gin.Engine) {
 
 func (h *MessageHandler) GetByID(c *gin.Context) {
 	id := c.Param("id")
-
-	msg, err := h.uc.GetByID(c.Request.Context(), id)
+	idn, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		fmt.Println("Ошибка:", err)
+		return
+	}
+	msg, err := h.uc.GetByID(c.Request.Context(), idn)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "message not found", "details": err.Error()})
 		return
@@ -37,6 +43,13 @@ func (h *MessageHandler) GetByID(c *gin.Context) {
 func (h *MessageHandler) GetByTimeRange(c *gin.Context) {
 	fromStr := c.Query("from")
 	toStr := c.Query("to")
+	ids := c.Param("id")
+
+	id, err := strconv.ParseInt(ids, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "id is invalid", "details": err.Error()})
+		return
+	}
 
 	if fromStr == "" || toStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "missing 'from' or 'to' query params"})
@@ -55,7 +68,7 @@ func (h *MessageHandler) GetByTimeRange(c *gin.Context) {
 		return
 	}
 
-	messages, err := h.uc.GetByTimeRange(c.Request.Context(), from, to)
+	messages, err := h.uc.GetByTimeRange(c.Request.Context(), from, to, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get messages", "details": err.Error()})
 		return
