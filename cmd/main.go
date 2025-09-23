@@ -25,7 +25,7 @@ func main() {
 	db := client.Database("messages")
 
 	// Репозиторий и UseCase
-	repo := mongodb.NewMessageRepository(db, "messages")
+	repo := mongodb.NewMessageRepository(db)
 	uc := usecase.NewMessageUseCase(repo)
 
 	// Gin router
@@ -35,9 +35,9 @@ func main() {
 	msgHandler := msgHttp.NewMessageHandler(uc)
 	msgHandler.RegisterRoutes(router)
 	kafkaConsumer := kafka.NewMessageConsumer(
-		[]string{"localhost:9092"},
-		"test-topic",
-		"test-group",
+		[]string{"192.168.1.220:9092"},
+		"raw",
+		"rawID",
 		uc,
 	)
 

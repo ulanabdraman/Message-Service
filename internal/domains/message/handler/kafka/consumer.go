@@ -39,14 +39,28 @@ func (c *MessageConsumer) Start() error {
 			continue
 		}
 
+		// Пробуем как массив DTO
+		var dtoList []MessageDTO
+		if err := json.Unmarshal(m.Value, &dtoList); err == nil {
+			for i, dto := range dtoList {
+				msg := dtoToModel(dto)
+				if err := c.useCase.Save(c.ctx, msg); err != nil {
+					log.Printf("[Kafka] Save error (index %d): %v\n", i, err)
+				} else {
+					log.Printf("[Kafka] Message saved (index %d): %+v\n", i, msg)
+				}
+			}
+			continue
+		}
+
+		// Если не массив, пробуем как одиночный DTO
 		var dto MessageDTO
 		if err := json.Unmarshal(m.Value, &dto); err != nil {
-			log.Printf("[Kafka] JSON unmarshal error: %v\n", err)
+			log.Printf("[Kafka] JSON unmarshal error (invalid format): %v\n", err)
 			continue
 		}
 
 		msg := dtoToModel(dto)
-
 		if err := c.useCase.Save(c.ctx, msg); err != nil {
 			log.Printf("[Kafka] Save error: %v\n", err)
 		} else {
@@ -61,7 +75,8 @@ func (c *MessageConsumer) Close() error {
 
 func dtoToModel(dto MessageDTO) *model.Message {
 	return &model.Message{
-		T:  dto.T,
+		ID: dto.ID,
+		DT: dto.DT,
 		ST: dto.ST,
 		Pos: model.Pos{
 			X:  dto.Pos.X,
@@ -69,7 +84,7 @@ func dtoToModel(dto MessageDTO) *model.Message {
 			Z:  dto.Pos.Z,
 			A:  dto.Pos.A,
 			S:  dto.Pos.S,
-			St: dto.Pos.St,
+			Sl: dto.Pos.Sl,
 		},
 		Params: dto.Params,
 	}

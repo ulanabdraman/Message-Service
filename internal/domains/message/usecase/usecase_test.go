@@ -36,7 +36,7 @@ func TestSave_CallsRepo(t *testing.T) {
 	mrepo := new(mockRepo)
 	uc := usecase.NewMessageUseCase(mrepo)
 
-	msg := &model.Message{T: 123, ST: 1}
+	msg := &model.Message{DT: 123, ST: 1}
 	mrepo.On("Insert", mock.Anything, msg).Return(nil)
 
 	err := uc.Save(context.Background(), msg)

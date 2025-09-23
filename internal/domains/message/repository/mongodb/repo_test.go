@@ -29,15 +29,15 @@ func TestInsertAndGetByID(t *testing.T) {
 	// Тестируемое сообщение
 	msg := &model.Message{
 		UUID: 3453,
-		T:    time.Now().Unix(),
+		DT:   time.Now().Unix(),
 		ST:   1,
-		Pos:  model.Pos{X: 1.1, Y: 2.2, Z: 3, A: 4, S: 5, St: 6},
+		Pos:  model.Pos{X: 1.1, Y: 2.2, Z: 3, A: 4, S: 5, Sl: 6},
 		Params: map[string]interface{}{
 			"custom": "value",
 			"speed":  42,
 		},
 	}
-	log.Println(msg.T)
+	log.Println(msg.DT)
 
 	// Вставка
 	err = repo.Insert(ctx, msg)
@@ -50,7 +50,7 @@ func TestInsertAndGetByID(t *testing.T) {
 
 	// Проверка полей (упрощённо)
 	require.Equal(t, msg.UUID, fetched.UUID)
-	require.Equal(t, msg.T, fetched.T)
+	require.Equal(t, msg.DT, fetched.DT)
 	require.Equal(t, msg.ST, fetched.ST)
 	require.Equal(t, msg.Pos, fetched.Pos)
 
@@ -74,9 +74,9 @@ func TestGetByTimeRange(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Second)
 
 	msgs := []*model.Message{
-		{UUID: testUUID, T: now.Add(-2 * time.Minute).Unix(), ST: 1, Pos: model.Pos{X: 1, Y: 1}},
-		{UUID: testUUID, T: now.Unix(), ST: 2, Pos: model.Pos{X: 2, Y: 2}}, // должно попасть
-		{UUID: testUUID, T: now.Add(2 * time.Minute).Unix(), ST: 3, Pos: model.Pos{X: 3, Y: 3}},
+		{UUID: testUUID, DT: now.Add(-2 * time.Minute).Unix(), ST: 1, Pos: model.Pos{X: 1, Y: 1}},
+		{UUID: testUUID, DT: now.Unix(), ST: 2, Pos: model.Pos{X: 2, Y: 2}}, // должно попасть
+		{UUID: testUUID, DT: now.Add(2 * time.Minute).Unix(), ST: 3, Pos: model.Pos{X: 3, Y: 3}},
 	}
 
 	for _, m := range msgs {
@@ -91,7 +91,7 @@ func TestGetByTimeRange(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, results, 1, "должно вернуться только одно сообщение")
-	require.Equal(t, msgs[1].T, results[0].T)
+	require.Equal(t, msgs[1].DT, results[0].DT)
 
 	// очистка
 	_, _ = db.Collection("messages").DeleteMany(ctx, primitive.M{"uuid": testUUID})

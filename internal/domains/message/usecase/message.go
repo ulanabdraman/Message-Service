@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"MessageService/internal/domains/message/model"
@@ -10,7 +11,7 @@ import (
 
 type MessageUseCase interface {
 	Save(ctx context.Context, msg *model.Message) error
-	GetByID(ctx context.Context, id int64) (*model.Message, error)
+	GetByID(ctx context.Context, id int64) ([]*model.Message, error)
 	GetByTimeRange(ctx context.Context, from, to time.Time, id int64) ([]*model.Message, error)
 }
 
@@ -25,10 +26,13 @@ func NewMessageUseCase(repo mongodb.MessageRepository) MessageUseCase {
 }
 
 func (uc *messageUseCase) Save(ctx context.Context, msg *model.Message) error {
+	if msg.ID == 0 {
+		return fmt.Errorf("no ID")
+	}
 	return uc.repo.Insert(ctx, msg)
 }
 
-func (uc *messageUseCase) GetByID(ctx context.Context, id int64) (*model.Message, error) {
+func (uc *messageUseCase) GetByID(ctx context.Context, id int64) ([]*model.Message, error) {
 	return uc.repo.GetByID(ctx, id)
 }
 

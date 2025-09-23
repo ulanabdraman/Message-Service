@@ -6,12 +6,13 @@ type PosDTO struct {
 	Z  int     `json:"z"`
 	A  int     `json:"a"`
 	S  int     `json:"s"`
-	St int     `json:"st"`
+	Sl int     `json:"sl"`
 }
 
 type MessageDTO struct {
-	T      int64                  `json:"t"`
-	ST     int                    `json:"st"`
+	ID     int64                  `json:"id"`
+	DT     int64                  `json:"dt"`
+	ST     int64                  `json:"st"`
 	Pos    PosDTO                 `json:"pos"`
 	Params map[string]interface{} `json:"p"`
 }
